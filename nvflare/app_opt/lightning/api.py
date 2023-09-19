@@ -18,11 +18,9 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
 from torch import Tensor
 
-from nvflare.app_common.abstract.fl_model import FLModel, MetaKey
+from nvflare.app_common.abstract.fl_model import FLModel
 from nvflare.client.api import clear, get_config, init, receive, send
 from nvflare.client.config import ConfigKey
-
-FL_META_KEY = "__fl_meta__"
 
 
 def patch(trainer: pl.Trainer):
@@ -45,6 +43,7 @@ class FLCallback(Callback):
         self.has_training = get_config().get(ConfigKey.TRAINING, False)
         self.input_fl_model = None
         self._receive_model()
+
         self.metrics = None
 
     def reset_state(self):
@@ -61,15 +60,7 @@ class FLCallback(Callback):
 
     def on_train_end(self, trainer, pl_module):
         if self.has_training:
-            if hasattr(pl_module, FL_META_KEY):
-                fl_meta = getattr(pl_module, FL_META_KEY)
-                if not isinstance(fl_meta, dict):
-                    raise RuntimeError(f"The {FL_META_KEY} needs to be a dictionary")
-            else:
-                fl_meta = {}
-            if MetaKey.NUM_STEPS_CURRENT_ROUND not in fl_meta:
-                fl_meta[MetaKey.NUM_STEPS_CURRENT_ROUND] = trainer.estimated_stepping_batches
-            self._send_model(FLModel(params=pl_module.cpu().state_dict(), meta=fl_meta))
+            self._send_model(FLModel(params=pl_module.cpu().state_dict()))
             self.reset_state()
 
     def on_validation_start(self, trainer, pl_module):

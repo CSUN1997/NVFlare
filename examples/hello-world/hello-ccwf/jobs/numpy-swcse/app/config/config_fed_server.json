@@ -14,7 +14,9 @@
       "id": "swarm_controller",
       "path": "nvflare.app_common.ccwf.SwarmServerController",
       "args": {
-        "num_rounds": 3
+        "num_rounds": 3,
+        "aggr_clients": ["site-1", "site-2"],
+        "train_clients": ["site-1", "site-2"]
       }
     },
     {

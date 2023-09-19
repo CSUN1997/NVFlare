@@ -93,7 +93,6 @@ class ClientEngineExecutorSpec(ClientEngineSpec, EngineSpec, ABC):
         timeout: float,
         fl_ctx: FLContext,
         optional=False,
-        secure: bool = False,
     ) -> dict:
         """Send a request to Server via the aux channel.
 
@@ -106,7 +105,6 @@ class ClientEngineExecutorSpec(ClientEngineSpec, EngineSpec, ABC):
             timeout: number of secs to wait for replies. 0 means fire-and-forget.
             fl_ctx: FL context
             optional: whether the request is optional
-            secure: should the request sent in the secure way
 
         Returns:
             a dict of reply Shareable in the format of:
@@ -117,7 +115,7 @@ class ClientEngineExecutorSpec(ClientEngineSpec, EngineSpec, ABC):
 
     @abstractmethod
     def fire_and_forget_aux_request(
-        self, topic: str, request: Shareable, fl_ctx: FLContext, optional=False, secure=False
+        self, topic: str, request: Shareable, fl_ctx: FLContext, optional=False
     ) -> Shareable:
         """Send an async request to Server via the aux channel.
 

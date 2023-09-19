@@ -13,6 +13,7 @@
 # limitations under the License.
 import logging
 import threading
+import traceback
 from collections import deque
 from typing import Callable, Dict, Tuple
 
@@ -249,7 +250,7 @@ class ByteReceiver:
             stream = RxStream(self, task)
             return callback.cb(task.stream_future, stream, False, *callback.args, **callback.kwargs)
         except Exception as ex:
-            msg = f"{task} callback {callback.cb} throws exception: {ex}"
+            msg = f"{task} callback {callback.cb} throws exception: {traceback.print_exc()}"
             log.error(msg)
             self.stop_task(task, StreamError(msg))
 

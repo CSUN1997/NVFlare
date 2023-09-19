@@ -33,7 +33,6 @@ class SwarmServerController(ServerSideController):
         starting_client: str = "",
         max_status_report_interval: float = Constant.PER_CLIENT_STATUS_REPORT_TIMEOUT,
         progress_timeout: float = Constant.WORKFLOW_PROGRESS_TIMEOUT,
-        private_p2p: bool = True,
         aggr_clients=None,
         train_clients=None,
     ):
@@ -57,7 +56,6 @@ class SwarmServerController(ServerSideController):
             starting_client_policy=DefaultValuePolicy.ANY,
             max_status_report_interval=max_status_report_interval,
             progress_timeout=progress_timeout,
-            private_p2p=private_p2p,
         )
         if not train_clients:
             train_clients = []
@@ -70,6 +68,8 @@ class SwarmServerController(ServerSideController):
 
     def start_controller(self, fl_ctx: FLContext):
         super().start_controller(fl_ctx)
+
+        self.log_info(fl_ctx, f"participating_clients: {self.participating_clients}")
 
         self.train_clients = validate_candidates(
             var_name="train_clients",

@@ -24,7 +24,8 @@ from nvflare.app_common.app_constant import AppConstants
 
 
 class CollectAndAssembleAggregator(Aggregator):
-    """Perform collection and flexible assemble aggregation
+    """
+    Perform collection and flexible assemble aggregation
 
     This is used for methods needing a special assemble mechanism on the client submissions.
     It first collects all submissions from clients, then delegates the assembling functionality to assembler,

@@ -238,6 +238,9 @@ class SwarmClientController(ClientSideController):
         final_result_ack_timeout=Constant.FINAL_RESULT_ACK_TIMEOUT,
         min_responses_required: int = 1,
         wait_time_after_min_resps_received: float = 10.0,
+        all_clients=None,
+        trainers=None,
+        aggrs=None
     ):
         check_non_empty_str("learn_task_name", learn_task_name)
         check_non_empty_str("persistor_id", persistor_id)
@@ -274,21 +277,22 @@ class SwarmClientController(ClientSideController):
         self.aggregator = None
         self.gatherer = None
         self.gatherer_waiter = threading.Event()
-        self.trainers = None
-        self.aggrs = None
+        self.all_clients = all_clients
+        self.trainers = trainers
+        self.aggrs = aggrs
         self.is_trainer = False
         self.is_aggr = False
         self.last_aggr_round_done = -1
 
     def process_config(self, fl_ctx: FLContext):
-        all_clients = self.get_config_prop(Constant.CLIENTS)
+        # all_clients = self.get_config_prop(Constant.CLIENTS)
 
-        self.trainers = self.get_config_prop(Constant.TRAIN_CLIENTS)
+        # self.trainers = self.get_config_prop(Constant.TRAIN_CLIENTS)
         if not self.trainers:
             self.trainers = all_clients
         self.is_trainer = self.me in self.trainers
 
-        self.aggrs = self.get_config_prop(Constant.AGGR_CLIENTS)
+        # self.aggrs = self.get_config_prop(Constant.AGGR_CLIENTS)
         if not self.aggrs:
             self.aggrs = all_clients
         self.is_aggr = self.me in self.aggrs
@@ -351,10 +355,12 @@ class SwarmClientController(ClientSideController):
             super().handle_event(event_type, fl_ctx)
 
     def start_workflow(self, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        clients = self.get_config_prop(Constant.CLIENTS)
-        aggr_clients = self.get_config_prop(Constant.AGGR_CLIENTS, [])
-        train_clients = self.get_config_prop(Constant.TRAIN_CLIENTS, [])
-
+        # clients = self.get_config_prop(Constant.CLIENTS)
+        # aggr_clients = self.get_config_prop(Constant.AGGR_CLIENTS, [])
+        # train_clients = self.get_config_prop(Constant.TRAIN_CLIENTS, [])
+        clients = self.all_clients
+        aggr_clients = self.aggrs
+        train_clients = self.trainers
         self.log_info(
             fl_ctx, f"Starting Swarm Workflow on clients {clients}, aggrs {aggr_clients}, trainers {train_clients}"
         )
@@ -368,8 +374,10 @@ class SwarmClientController(ClientSideController):
         return make_reply(ReturnCode.OK)
 
     def _scatter(self, task_data: Shareable, for_round: int, fl_ctx: FLContext) -> bool:
-        clients = self.get_config_prop(Constant.TRAIN_CLIENTS)
-        aggr_clients = self.get_config_prop(Constant.AGGR_CLIENTS)
+        # clients = self.get_config_prop(Constant.TRAIN_CLIENTS)
+        clients = self.all_clients
+        # aggr_clients = self.get_config_prop(Constant.AGGR_CLIENTS)
+        aggr_clients = self.aggrs
 
         # determine aggr client
         aggr = random.choice(aggr_clients)
@@ -452,7 +460,6 @@ class SwarmClientController(ClientSideController):
             request=Shareable(),
             timeout=self.final_result_ack_timeout,
             fl_ctx=fl_ctx,
-            secure=False,
         )
 
         assert isinstance(resp, dict)
@@ -585,7 +592,8 @@ class SwarmClientController(ClientSideController):
 
             self.gatherer = Gatherer(
                 fl_ctx=fl_ctx,
-                all_clients=self.get_config_prop(Constant.CLIENTS),
+                # all_clients=self.get_config_prop(Constant.CLIENTS),
+                all_clients=self.all_clients,
                 metric_comparator=self.metric_comparator,
                 trainers=self.trainers,
                 for_round=current_round,
@@ -616,7 +624,6 @@ class SwarmClientController(ClientSideController):
                 name=self.report_learn_result_task_name,
                 data=result,
                 timeout=int(self.learn_task_ack_timeout),
-                secure=self.is_task_secure(fl_ctx),
             )
 
             resp = self.broadcast_and_wait(

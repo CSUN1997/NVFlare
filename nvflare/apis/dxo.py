@@ -30,6 +30,7 @@ class DataKind(object):
     COLLECTION = "COLLECTION"  # Dict or List of DXO objects
     STATISTICS = "STATISTICS"
     PSI = "PSI"
+    MULTI_WEIGHTS = "MULTI_WEIGHTS"
 
 
 class MetaKey(FLMetaKey):
@@ -75,6 +76,11 @@ class DXO(object):
         if self.meta is None:
             self.meta = {}
         self.meta[key] = value
+
+    def set_data_prop(self, key: str, value):
+        if self.data is None:
+            self.data = {}
+        self.data[key] = value
 
     def remove_meta_props(self, keys: List[str]):
         if self.meta and keys:

@@ -21,7 +21,10 @@
           "aggregator_id": "aggregator",
           "shareable_generator_id": "shareable_generator",
           "min_responses_required": 2,
-          "wait_time_after_min_resps_received": 1
+          "wait_time_after_min_resps_received": 1,
+          "all_clients": ["site-1", "site-2"],
+          "trainers": ["site-1", "site-2"],
+          "aggrs": ["site-1", "site-2"]
         }
       }
     },

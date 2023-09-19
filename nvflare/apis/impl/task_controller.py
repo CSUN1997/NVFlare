@@ -83,7 +83,6 @@ class TaskController(FLComponent, ControllerSpec):
         request = task.data
         # apply task filters
         self.log_debug(fl_ctx, "firing event EventType.BEFORE_TASK_DATA_FILTER")
-        fl_ctx.set_prop(FLContextKey.TASK_DATA, task.data, sticky=False, private=True)
         self.fire_event(EventType.BEFORE_TASK_DATA_FILTER, fl_ctx)
 
         # # first apply privacy-defined filters
@@ -98,10 +97,6 @@ class TaskController(FLComponent, ControllerSpec):
             )
             replies = self._make_error_reply(ReturnCode.TASK_DATA_FILTER_ERROR, targets)
             return replies
-
-        self.log_debug(fl_ctx, "firing event EventType.AFTER_TASK_DATA_FILTER")
-        fl_ctx.set_prop(FLContextKey.TASK_DATA, task.data, sticky=False, private=True)
-        self.fire_event(EventType.AFTER_TASK_DATA_FILTER, fl_ctx)
 
         target_names = get_target_names(targets)
         _, invalid_names = engine.validate_targets(target_names)
@@ -124,13 +119,11 @@ class TaskController(FLComponent, ControllerSpec):
 
         request.set_header(ReservedKey.TASK_NAME, task.name)
         replies = engine.send_aux_request(
-            targets=targets,
-            topic=ReservedTopic.DO_TASK,
-            request=request,
-            timeout=task.timeout,
-            fl_ctx=fl_ctx,
-            secure=task.secure,
+            targets=targets, topic=ReservedTopic.DO_TASK, request=request, timeout=task.timeout, fl_ctx=fl_ctx
         )
+
+        self.log_debug(fl_ctx, "firing event EventType.AFTER_TASK_EXECUTION")
+        self.fire_event(EventType.AFTER_TASK_EXECUTION, fl_ctx)
 
         self.log_debug(fl_ctx, "firing event EventType.BEFORE_TASK_RESULT_FILTER")
         self.fire_event(EventType.BEFORE_TASK_RESULT_FILTER, fl_ctx)

@@ -14,12 +14,14 @@
 
 import logging
 
+import torch
 from nvflare.apis.fl_constant import FLContextKey, NonSerializableKeys
 from nvflare.apis.fl_context import FLContext
 from nvflare.apis.shareable import Shareable
 from nvflare.fuel.sec.audit import AuditService
 from nvflare.fuel.utils import fobs
 from nvflare.security.logging import secure_format_exception
+from inspect import currentframe, getframeinfo, stack
 
 logger = logging.getLogger("fl_context_utils")
 
@@ -27,6 +29,7 @@ logger = logging.getLogger("fl_context_utils")
 def get_serializable_data(fl_ctx: FLContext):
     new_fl_ctx = FLContext()
     for k, v in fl_ctx.props.items():
+        # logger.info(f"{k}: {v}")
         if k not in NonSerializableKeys.KEYS:
             try:
                 fobs.dumps(v)
@@ -50,6 +53,8 @@ def generate_log_message(fl_ctx: FLContext, msg: str):
     _task_id = "task_id"
     _rc = "peer_rc"
     _wf = "wf"
+    _file = "file"
+    _line_no = "line_number"
 
     all_kvs = {_identity_: fl_ctx.get_identity_name()}
     my_run = fl_ctx.get_job_id()
@@ -70,6 +75,10 @@ def generate_log_message(fl_ctx: FLContext, msg: str):
     if wf_id is not None:
         all_kvs[_wf] = wf_id
 
+    frameinfo = getframeinfo(stack()[1][0])
+    all_kvs[_file] = frameinfo.filename
+    all_kvs[_line_no] = frameinfo.lineno
+
     peer_ctx = fl_ctx.get_peer_context()
     if peer_ctx:
         if not isinstance(peer_ctx, FLContext):
@@ -89,7 +98,7 @@ def generate_log_message(fl_ctx: FLContext, msg: str):
         rc = reply.get_return_code("OK")
         all_kvs[_rc] = rc
 
-    item_order = [_identity_, _my_run, _wf, _peer_name, _peer_run, _rc, _task_name, _task_id]
+    item_order = [_identity_, _my_run, _wf, _peer_name, _peer_run, _rc, _task_name, _task_id, _file, _line_no]
     ctx_items = []
     for item in item_order:
         if item in all_kvs:

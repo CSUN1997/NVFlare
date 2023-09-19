@@ -6,14 +6,12 @@
         "train"
       ],
       "executor": {
-        "path": "trainer.SimpleTrainer",
+        "path": "nvflare.app_common.np.np_trainer.NPTrainer",
         "args": {
-          "epochs_per_round": 2
         }
       }
     }
   ],
   "task_result_filters": [],
-  "task_data_filters": []
-
+  "task_data_filters": [],
 }
